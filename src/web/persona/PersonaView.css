@@ -1,0 +1,149 @@
+/* Adapted from cube-computer: src/windows/app/src/persona/PersonaView.css
+   Changes: the workspace column's rules (heading, tools, rows, sections,
+   place badge, empty note, column handle) are kept; the rail, contained-pane
+   and tree-pane rules are gone with the rail; the conversation's own rules
+   live in agent/Conversation.css. Added: the page layout, the switcher, the
+   menus and dialogs, the pick column, the worker terminal, the file view
+   and the context folder list. */
+
+/* ── The page ── */
+.personas-app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; min-height: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); }
+.personas-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; }
+.persona-app-error { display: flex; align-items: center; gap: 8px; margin: 0 12px 6px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--destructive) 10%, transparent); color: var(--destructive); font-size: 12.5px; }
+.persona-app-error > span { flex: 1; }
+
+/* ── The switcher ── */
+/* Only the strip scrolls; the menus are the switcher's children, outside it,
+   and fixed at their trigger, so the scroller can never clip them. */
+.persona-switcher { flex: none; min-width: 0; border-bottom: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent); }
+.persona-switch-strip { display: flex; align-items: center; gap: 6px; min-height: 52px; padding: 8px 12px; box-sizing: border-box; overflow-x: auto; }
+.persona-switch-group { position: relative; display: flex; align-items: center; flex: none; }
+.persona-switch { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.persona-switch .persona-avatar { font-size: 26px; }
+.persona-switch[aria-pressed="true"] { background: color-mix(in srgb, var(--foreground) 9%, transparent); }
+.persona-switch:hover { background: color-mix(in srgb, var(--foreground) 6%, transparent); }
+.persona-switch:focus-visible, .persona-switch-menu:focus-visible, .persona-new-button:focus-visible, .persona-new-more:focus-visible { outline: 2px solid var(--accent-selection, rgb(37, 99, 235)); outline-offset: 1px; }
+/* An avatar's menu trigger appears beside it on hover or focus. */
+.persona-switch-menu { display: grid; place-items: center; width: 16px; height: 24px; margin-left: -2px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: var(--muted-foreground); cursor: pointer; opacity: 0; transition: opacity 0.12s ease; }
+.persona-switch-group:hover .persona-switch-menu, .persona-switch-menu:focus-visible, .persona-switch-menu[aria-expanded="true"] { opacity: 1; }
+.persona-switch-menu:hover { color: var(--foreground); background: color-mix(in srgb, var(--foreground) 6%, transparent); }
+.persona-harness { display: grid; place-items: center; width: 100%; height: 100%; }
+.persona-new { margin-left: 4px; }
+.persona-new-button, .persona-new-more { display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); background: transparent; color: var(--foreground); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.persona-new-button { border-radius: 8px 0 0 8px; }
+.persona-new-more { padding: 0 7px; border-left: 0; border-radius: 0 8px 8px 0; color: var(--muted-foreground); }
+.persona-new-button:hover, .persona-new-more:hover { background: color-mix(in srgb, var(--foreground) 5%, transparent); color: var(--foreground); }
+
+/* ── Menus and dialogs ── */
+.persona-menu { position: fixed; z-index: 30; display: flex; flex-direction: column; min-width: 180px; padding: 4px; border: 1px solid var(--surface-edge); border-radius: 10px; background: var(--surface-raised); box-shadow: var(--shadow-dialog); }
+.persona-menu-item { display: flex; align-items: center; min-height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--foreground); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.persona-menu-item:hover, .persona-menu-item:focus-visible { outline: none; background: color-mix(in srgb, var(--foreground) 7%, transparent); }
+.persona-menu-danger { color: var(--destructive); }
+.persona-dialog-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgb(0 0 0 / 0.28); }
+.persona-dialog { display: flex; flex-direction: column; gap: 12px; width: min(480px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 20px; border: 1px solid var(--surface-edge); border-radius: var(--radius-dialog); background: var(--surface-raised); box-shadow: var(--shadow-dialog); color: var(--foreground); }
+.persona-dialog-title { margin: 0; font-size: 15px; font-weight: 600; }
+.persona-dialog-note { margin: 0; font-size: 13px; line-height: 1.45; color: var(--muted-foreground); overflow-wrap: anywhere; }
+.persona-dialog-textarea, .persona-dialog-input { box-sizing: border-box; width: 100%; padding: 8px 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--foreground) 3%, transparent); color: var(--foreground); font-size: 13px; }
+.persona-dialog-textarea { min-height: 160px; resize: vertical; font-family: var(--font-mono), monospace; font-size: 12px; line-height: 1.5; }
+.persona-dialog-textarea:focus, .persona-dialog-input:focus { outline: none; border-color: color-mix(in srgb, var(--foreground) 30%, transparent); }
+.persona-dialog-error { margin: 0; font-size: 12.5px; color: var(--destructive); }
+.persona-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.persona-dialog-button { height: 30px; padding: 0 14px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); border-radius: 8px; background: transparent; color: var(--foreground); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.persona-dialog-button:hover:not(:disabled) { background: color-mix(in srgb, var(--foreground) 5%, transparent); }
+.persona-dialog-button:disabled { opacity: 0.5; cursor: default; }
+.persona-dialog-primary { border-color: transparent; background: var(--primary); color: var(--primary-foreground); }
+.persona-dialog-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--primary) 88%, var(--background)); }
+.persona-dialog-danger { border-color: transparent; background: var(--destructive); color: #fff; }
+.persona-dialog-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--destructive) 88%, var(--background)); }
+
+/* ── The three columns ── */
+.persona-columns { display: flex; flex: 1; min-height: 0; overflow-x: auto; }
+.persona-column { position: relative; display: flex; flex-direction: column; min-width: 240px; min-height: 0; overflow: hidden; }
+.persona-column-conversation > .agent-item { flex: 1; min-height: 0; }
+.persona-column-list, .persona-column-pick { border-left: 1px solid color-mix(in srgb, var(--foreground) 9%, transparent); }
+/* One seam, with a wider invisible hit target for resizing. */
+.persona-column-handle { position: relative; z-index: 2; flex: none; width: 0; cursor: col-resize; touch-action: none; }
+.persona-column-handle::before { content: ""; position: absolute; top: 0; bottom: 0; left: -6px; width: 12px; }
+.persona-column-handle:hover::after, .persona-column-handle:focus-visible::after { content: ""; position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; background: var(--accent-selection, rgb(37, 99, 235)); opacity: 0.6; }
+.persona-column-handle:focus-visible { outline: none; }
+
+/* ── The workspace column (PersonaTree's clothes) ── */
+.persona-list-surface { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: auto; padding: 4px 12px 12px; }
+.persona-list-surface > .persona-list-heading,
+.persona-list-surface > .persona-tree { flex-shrink: 0; }
+.persona-list-heading { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 4px 0 6px; color: var(--foreground); font-size: 15px; font-weight: 600; }
+.persona-list-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.persona-list-tools { display: flex; align-items: center; gap: 2px; flex: none; }
+.persona-list-tool { display: flex; align-items: center; gap: 5px; height: 26px; padding: 0 7px; border: 0; border-radius: 6px; background: transparent; color: var(--muted-foreground); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
+.persona-list-tool:hover:not(:disabled), .persona-list-tool[aria-pressed="true"] { background: color-mix(in srgb, var(--foreground) 6%, transparent); color: var(--foreground); }
+.persona-list-tool:disabled { opacity: 0.4; cursor: default; }
+.persona-list-tool:focus-visible { outline: 2px solid var(--accent-selection, rgb(37, 99, 235)); outline-offset: -2px; }
+.persona-workspace-back { display: grid; place-items: center; border: 0; background: transparent; color: var(--muted-foreground); padding: 4px; cursor: pointer; }
+.persona-workspace-back:hover { color: var(--foreground); }
+.persona-workspace-back:focus-visible { outline: 2px solid var(--accent-selection, rgb(37, 99, 235)); }
+/* A worker row shares a persona cell's geometry and states — 30px, 8px
+   corner, 5% hover, 7% selection — at a medium weight. */
+.persona-subitem { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; min-height: 30px; padding: 2px 4px; border: 0; border-radius: 8px; text-align: left; font: inherit; font-size: 13px; font-weight: 500; color: var(--foreground); background: transparent; cursor: pointer; transition: background 0.12s ease; }
+.persona-subitem:hover { background: color-mix(in srgb, var(--foreground) 5%, transparent); }
+.persona-subitem[aria-pressed="true"] { background: color-mix(in srgb, var(--foreground) 7%, transparent); box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--foreground) 6%, transparent); }
+.persona-subitem:focus-visible { outline: 2px solid var(--accent-selection, rgb(37, 99, 235)); outline-offset: -2px; }
+.persona-subitem-copy { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.persona-tree-repo,
+.persona-tree-checkout { display: flex; align-items: center; gap: 8px; padding: 6px 8px; color: var(--muted-foreground); font-size: 12px; }
+.persona-tree-repo { padding: 5px 8px; color: var(--foreground); }
+.persona-tree-checkout { padding-left: 20px; }
+.persona-section[data-depth="1"] .persona-subitem { padding-left: 32px; }
+.persona-tree-branch { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.persona-section + .persona-section { margin-top: 10px; }
+.persona-section[data-depth="1"] + .persona-section[data-depth="1"] { margin-top: 2px; }
+/* The place badge is the sidebar's branch pill: a 16px chip on a hairline,
+   mono 10.5px, faint fill. */
+.persona-checkout-label { flex: 0 1 auto; min-width: 0; max-width: 45%; margin-left: auto; padding: 0 4px; border: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent); border-radius: 4px; background: color-mix(in srgb, var(--foreground) 4%, transparent); color: var(--muted-foreground); font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; line-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.persona-worker-icon { display: grid; place-items: center; width: 18px; height: 18px; flex: none; overflow: hidden; color: color-mix(in srgb, var(--foreground) 72%, transparent); }
+/* A worker's state: running pulses, idle is quiet, exited is hollow. */
+.persona-worker-row { align-items: flex-start; padding-top: 5px; padding-bottom: 5px; }
+.persona-worker-dot { flex: none; width: 8px; height: 8px; margin: 5px 5px 0; border-radius: 50%; background: color-mix(in srgb, var(--foreground) 35%, transparent); }
+.persona-worker-dot[data-state="running"] { background: var(--success, rgb(34, 160, 90)); animation: persona-dot 1.6s ease-in-out infinite; }
+.persona-worker-dot[data-state="exited"] { background: transparent; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--foreground) 35%, transparent); }
+@keyframes persona-dot { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .persona-worker-dot[data-state="running"] { animation: none; } }
+.persona-worker-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.persona-worker-report { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--muted-foreground); font-size: 12px; font-weight: 400; }
+/* The empty workspace explains what belongs here without simulating activity. */
+.persona-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; padding: 24px 20px 64px; text-align: center; }
+.persona-empty-title { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--foreground); text-wrap: balance; }
+.persona-empty-note { max-width: 280px; margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted-foreground); text-wrap: balance; }
+
+/* ── The pick column ── */
+.persona-pick { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.persona-pick-heading { flex: none; padding: 0 8px 0 14px; }
+.persona-pick-body { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.persona-pick-empty { flex: 1; display: grid; place-items: center; padding: 24px; color: var(--muted-foreground); font-size: 13px; text-align: center; }
+.persona-pick-empty p { margin: 0; }
+.persona-pick-note { margin: 0; padding: 24px; color: var(--muted-foreground); font-size: 13px; text-align: center; }
+.persona-pick-error { margin: 8px; font-size: 12.5px; color: var(--destructive); }
+.artifact-frame { flex: 1; width: 100%; min-height: 0; border: 0; background: #fff; }
+
+.worker-terminal { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.worker-terminal-host { flex: 1; min-height: 0; overflow: hidden; }
+/* Padding on .xterm itself, so the fit addon subtracts it when sizing. */
+.worker-terminal-host .xterm { height: 100%; padding: 12px; box-sizing: border-box; }
+.worker-terminal-host .xterm-viewport { background: transparent !important; }
+.worker-terminal-exit, .worker-terminal-error { flex: none; padding: 6px 14px; border-top: 1px solid color-mix(in srgb, var(--foreground) 9%, transparent); color: var(--muted-foreground); font-size: 12px; }
+.worker-terminal-error { color: var(--destructive); }
+
+.file-view { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.file-view-note { flex: none; margin: 0; padding: 6px 14px; border-bottom: 1px solid color-mix(in srgb, var(--foreground) 9%, transparent); color: var(--muted-foreground); font-size: 12px; }
+.file-view-text { flex: 1; min-height: 0; margin: 0; padding: 12px 14px; overflow: auto; font-family: var(--font-mono), monospace; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.context-folder { flex: 1; min-height: 0; overflow: auto; padding: 0 8px 12px; }
+.context-folder-root { margin: 0 0 4px; padding: 0 6px; overflow: hidden; color: var(--muted-foreground); font-family: var(--font-mono), monospace; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.context-folder-list { margin: 0; padding: 0; list-style: none; }
+.context-folder-row { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 26px; padding: 2px 6px; border: 0; border-radius: 8px; background: transparent; color: var(--foreground); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.context-folder-row:hover { background: color-mix(in srgb, var(--foreground) 5%, transparent); }
+.context-folder-row:focus-visible { outline: 2px solid var(--accent-selection, rgb(37, 99, 235)); outline-offset: -2px; }
+.context-folder-caret { flex: none; color: var(--muted-foreground); transition: rotate 0.12s ease; }
+.context-folder-caret[data-open] { rotate: 90deg; }
+.context-folder-caret-space { flex: none; width: 11px; }
+.context-folder-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.context-folder-empty { margin: 2px 0; color: var(--muted-foreground); font-size: 12px; }

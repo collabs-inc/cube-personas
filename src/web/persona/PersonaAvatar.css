@@ -1,0 +1,70 @@
+/* Adapted from cube-computer: src/windows/app/src/persona/PersonaAvatar.css
+   Changes: the states are classes rather than data attributes; the badge
+   carries a harness glyph rather than a vendor logo image. */
+/* A stable gradient circle, sized by its host; badges can extend past its rim. */
+.persona-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1em;
+  height: 1em;
+  flex: none;
+  font-size: 16px;
+  border-radius: 50%;
+}
+.persona-avatar-gradient {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-size: 140% 140%;
+  background-position: 35% 45%;
+}
+html:not(.dark) .persona-avatar-gradient { filter: brightness(1.2); }
+/* Unread: the persona finished a turn the user has not seen yet. */
+.persona-avatar-unread {
+  outline: 2px solid var(--accent-selection, rgb(37, 99, 235));
+  outline-offset: 1.5px;
+}
+/* Working: a highlight sweeps around the rim; the swatch itself stays still. */
+.persona-avatar-working::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, transparent 0 55%, rgb(255 255 255 / 0.35) 75%,
+    rgb(255 255 255 / 0.95) 90%, transparent 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  animation: persona-rim 1.6s linear infinite;
+}
+@keyframes persona-rim {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .persona-avatar-working::after {
+    animation: none;
+    background: rgb(255 255 255 / 0.6);
+  }
+}
+
+/* A small harness disc overlapping the avatar's lower-right rim. */
+.persona-avatar-badge {
+  position: absolute;
+  right: -12%;
+  bottom: -12%;
+  z-index: 1;
+  width: 62.5%;
+  height: 62.5%;
+  min-width: 12px;
+  min-height: 12px;
+  box-sizing: border-box;
+  padding: 2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px #fff;
+  display: grid;
+  place-items: center;
+}
+/* The badge's glyph: claude's in its own orange, codex's in ink. */
+.persona-avatar-badge svg { width: 100%; height: 100%; color: #242424; }
+.persona-avatar-badge .persona-harness-claude svg { color: rgb(199, 106, 61); }

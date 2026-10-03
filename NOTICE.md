@@ -1,0 +1,102 @@
+# Notice
+
+Parts of this code are adapted from Cube's own source (collabs-inc/cube-computer) and are published here under the MIT License, the same license as the rest of this repository. Each adapted file begins with a comment naming where it came from. The original paths, taken from those comments, are:
+
+- ReportDelivery in src/main/cubed/mcp/tools.ts and src/main/cubed/acp/queued-reports.ts
+- packages/components/src/LoadingPulse/LoadingPulse.css
+- packages/components/src/LoadingPulse/LoadingPulse.tsx
+- packages/components/src/Terminal/TerminalTab.tsx (the xterm options and fit-addon use) and packages/components/src/Terminal/theme.ts (both palettes, verbatim)
+- packages/components/src/Terminal/file-drop.ts (dropContents only)
+- packages/components/src/Terminal/image-paste.ts (bytesToBase64 only)
+- packages/shared/src/agent-protocol.test.ts
+- packages/shared/src/agent-protocol.ts
+- packages/shared/src/browser-image.ts
+- packages/shared/src/file-drag.ts
+- packages/shared/src/path-utils.ts (parseCloudPath only; CLOUD_PATH_PREFIX from packages/shared/src/types.ts)
+- packages/theme/src/styles.css
+- src/main/cubed/acp/capabilities.test.ts
+- src/main/cubed/acp/capabilities.ts
+- src/main/cubed/acp/fake-agent.mjs
+- src/main/cubed/acp/fixtures/README.md
+- src/main/cubed/acp/handshake.test.ts
+- src/main/cubed/acp/handshake.ts
+- src/main/cubed/acp/permissions.test.ts
+- src/main/cubed/acp/permissions.ts
+- src/main/cubed/acp/prompt-admission.test.ts
+- src/main/cubed/acp/prompt-admission.ts
+- src/main/cubed/agent-instructions.test.ts
+- src/main/cubed/agent-instructions.ts
+- src/main/cubed/agent-instructions.ts (composeLaunchArgs, placeInstructionArgs, tomlBasicString)
+- src/main/cubed/attention/hooks.ts
+- src/main/cubed/attention/spool.ts
+- src/main/cubed/mcp/http.test.ts
+- src/main/cubed/mcp/http.ts
+- src/main/cubed/mcp/protocol.test.ts
+- src/main/cubed/mcp/protocol.ts
+- src/main/cubed/mcp/ticket.test.ts
+- src/main/cubed/mcp/ticket.ts
+- src/main/cubed/mcp/tools.ts and src/main/cubed/ops/agent-ops.ts
+- src/main/cubed/ops/agent-ops.ts (spawn_agent, send_to_agent, stop_agent) and src/main/cubed/personas/terminal-reports.ts
+- src/main/cubed/personas/context-folder.test.ts
+- src/main/cubed/personas/context-folder.ts
+- src/main/cubed/personas/e2e.test.ts (FAKE_CLAUDE_WORKER)
+- src/main/cubed/personas/instructions.ts, src/main/cubed/ops/agent-ops.ts and packages/shared/src/artifact.ts
+- src/main/cubed/personas/repo-block.test.ts
+- src/main/cubed/personas/repo-block.ts
+- src/main/cubed/personas/reports.ts
+- src/main/cubed/personas/terminal-reports.ts and src/main/cubed/attention/adapters.ts
+- src/main/cubed/personas/wake-ups.ts
+- src/windows/app/src/items/agent/AgentContent.tsx
+- src/windows/app/src/items/agent/AgentItem.css
+- src/windows/app/src/items/agent/AgentItem.tsx
+- src/windows/app/src/items/agent/AgentMarkdown.tsx
+- src/windows/app/src/items/agent/AgentRendering.test.tsx
+- src/windows/app/src/items/agent/AgentTranscript.css
+- src/windows/app/src/items/agent/Composer.css
+- src/windows/app/src/items/agent/Composer.test.tsx
+- src/windows/app/src/items/agent/Composer.tsx
+- src/windows/app/src/items/agent/ConversationChrome.tsx
+- src/windows/app/src/items/agent/ConversationToolbar.tsx
+- src/windows/app/src/items/agent/PermissionCard.tsx
+- src/windows/app/src/items/agent/SessionControls.test.tsx
+- src/windows/app/src/items/agent/SessionControls.tsx
+- src/windows/app/src/items/agent/ToolCallView.tsx
+- src/windows/app/src/items/agent/ToolScreenshot.test.tsx
+- src/windows/app/src/items/agent/ToolScreenshot.tsx
+- src/windows/app/src/items/agent/TurnView.tsx
+- src/windows/app/src/items/agent/activity-state.ts
+- src/windows/app/src/items/agent/agent-item-logic.test.ts
+- src/windows/app/src/items/agent/agent-item-logic.ts
+- src/windows/app/src/items/agent/composer-logic.test.ts
+- src/windows/app/src/items/agent/composer-logic.ts
+- src/windows/app/src/items/agent/composer-state.test.ts
+- src/windows/app/src/items/agent/composer-state.ts
+- src/windows/app/src/items/agent/conversation-logic.test.ts
+- src/windows/app/src/items/agent/conversation-logic.ts
+- src/windows/app/src/items/agent/file-attachments.test.ts
+- src/windows/app/src/items/agent/file-attachments.ts
+- src/windows/app/src/items/agent/prompt-queue.test.ts
+- src/windows/app/src/items/agent/prompt-queue.ts
+- src/windows/app/src/items/agent/session-controls.test.ts
+- src/windows/app/src/items/agent/session-controls.ts
+- src/windows/app/src/items/agent/tool-screenshots.test.ts
+- src/windows/app/src/items/agent/tool-screenshots.ts
+- src/windows/app/src/items/agent/transcript-store.test.ts
+- src/windows/app/src/items/agent/transcript-store.ts
+- src/windows/app/src/items/agent/transcript.test.ts
+- src/windows/app/src/items/agent/transcript.ts
+- src/windows/app/src/persona/PersonaAvatar.css
+- src/windows/app/src/persona/PersonaAvatar.tsx
+- src/windows/app/src/persona/PersonaEventLines.css
+- src/windows/app/src/persona/PersonaEventLines.tsx (isCarriedReportsBlock, shownUserBlocks)
+- src/windows/app/src/persona/PersonaReportLines.tsx
+- src/windows/app/src/persona/PersonaTree.tsx
+- src/windows/app/src/persona/PersonaTyping.css
+- src/windows/app/src/persona/PersonaTyping.tsx
+- src/windows/app/src/persona/PersonaView.css
+- src/windows/app/src/persona/PersonaView.css (the persona conversation's rules), with the tokens it reads from src/windows/app/src/App.css (--accent-selection) and src/windows/app/src/sidebar/ReposSidebar.css (--focus-bg, --agent-*)
+- src/windows/app/src/persona/PersonaView.tsx (the column handle and the workspace column's heading) and src/windows/app/src/items/Rail.tsx (the persona's three columns)
+- src/windows/app/src/persona/PersonaWorkersStatus.css
+- src/windows/app/src/persona/PersonaWorkersStatus.test.tsx
+- src/windows/app/src/persona/PersonaWorkersStatus.tsx (with runningText from persona-workers.ts)
+- src/windows/app/src/persona/persona-geometry.ts (with the weights preference from persona/persona-preferences.ts)

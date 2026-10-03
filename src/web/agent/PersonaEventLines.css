@@ -1,0 +1,34 @@
+/* Adapted from cube-computer: src/windows/app/src/persona/PersonaEventLines.css */
+.persona-events {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.persona-event {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  display: flex;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.persona-event-icon { display: inline-flex; flex: none; margin-top: 3px; }
+.persona-event-icon svg { width: 10px; height: 10px; }
+.persona-event-label { opacity: .65; }
+.persona-event-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.persona-action-event:is([data-status="in_progress"], [data-status="pending"]) > .persona-event-icon { color: light-dark(#2563eb, #8aafff); }
+.persona-action-event[data-status="completed"] > .persona-event-icon { color: var(--success); }
+.persona-action-event:is([data-status="interrupted"], [data-status="unconfirmed"]) > .persona-event-icon { color: light-dark(#946200, #d9b565); }
+.persona-action-event[data-status="failed"] > .persona-event-icon { color: var(--destructive, #ef4444); }
+
+.persona-report { margin: 2px 0; }
+.persona-report-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  padding: 2px 0;
+}

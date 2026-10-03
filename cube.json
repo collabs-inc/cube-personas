@@ -1,0 +1,6 @@
+{
+  "name": "Personas",
+  "description": "A long-running agent that directs Claude Code and Codex workers on this machine.",
+  "install": "npm ci && npm run build",
+  "start": "node dist/server.js"
+}

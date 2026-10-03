@@ -1,0 +1,56 @@
+{
+  "name": "cube-personas",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "vitest run",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts test/e2e",
+    "build": "vite build && node esbuild.server.mjs",
+    "start": "node dist/server.js",
+    "dev": "npm run build && node dist/server.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/collabs-inc/cube-personas.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/collabs-inc/cube-personas/issues"
+  },
+  "homepage": "https://github.com/collabs-inc/cube-personas#readme",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "private": true,
+  "dependencies": {
+    "@agentclientprotocol/claude-agent-acp": "0.75.1",
+    "@agentclientprotocol/codex-acp": "1.10.0",
+    "@agentclientprotocol/sdk": "1.4.0",
+    "@phosphor-icons/react": "2.1.7",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
+    "node-pty": "^1.1.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-markdown": "10.1.0",
+    "remark-breaks": "4.0.0",
+    "remark-gfm": "4.0.1",
+    "ws": "8.21.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.2.0",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/ws": "^8.18.2",
+    "@vitejs/plugin-react": "5.1.4",
+    "esbuild": "^0.28.2",
+    "happy-dom": "^20.14.5",
+    "tailwindcss": "4.2.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.1",
+    "vitest": "^5.0.3"
+  }
+}

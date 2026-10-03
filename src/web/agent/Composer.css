@@ -1,0 +1,347 @@
+/* Adapted from cube-computer: src/windows/app/src/items/agent/Composer.css */
+.agent-composer-input-area { display: contents; }
+.agent-composer-submit-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+
+.agent-composer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+  border-radius: calc(var(--radius) + 4px);
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  box-shadow: 0 10px 32px rgb(0 0 0 / 8%), 0 1px 2px rgb(0 0 0 / 5%);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.agent-composer:focus-within {
+  border-color: color-mix(in srgb, var(--primary) 48%, var(--border));
+  box-shadow: 0 12px 36px rgb(0 0 0 / 10%), 0 0 0 2px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.agent-composer-running {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
+}
+
+.agent-composer-drop-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--foreground);
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  color: var(--foreground);
+  pointer-events: none;
+}
+
+.agent-composer-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 30px;
+  max-height: 200px;
+  resize: none;
+  padding: 2px 3px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.agent-composer-input::placeholder {
+  color: color-mix(in srgb, var(--muted-foreground) 76%, transparent);
+}
+
+.agent-composer-actions,
+.agent-composer-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.agent-composer-controls {
+  flex: 0 1 auto;
+  overflow: visible;
+}
+
+.agent-composer-controls:empty {
+  display: none;
+}
+
+.agent-composer-spacer {
+  flex: 1 1 auto;
+}
+
+.agent-context { display: flex; align-items: center; gap: 6px; flex: none; margin-right: 4px; color: var(--muted-foreground); font: 10px var(--font-mono); white-space: nowrap; }
+.agent-context-ring { transform: rotate(-90deg); }
+.agent-context-track { fill: none; stroke: var(--border); stroke-width: 2; }
+.agent-context-fill { fill: none; stroke: var(--muted-foreground); stroke-width: 2; stroke-linecap: round; }
+@container (max-width: 560px) {
+  .agent-context-count { display: none; }
+}
+
+.agent-mode-picker {
+  min-width: 0;
+  max-width: 150px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) - 3px);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-family: var(--font-sans);
+  font-size: 11px;
+}
+
+.agent-composer-attach,
+.agent-composer-send,
+.agent-composer-remove,
+.agent-composer-queue,
+.agent-composer-stop {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.agent-composer-attach {
+  width: 28px;
+  height: 28px;
+  border-radius: calc(var(--radius) - 3px);
+  background: transparent;
+  color: var(--muted-foreground);
+}
+
+.agent-composer-attach:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.agent-composer-send {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+.agent-composer-send:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.agent-composer-queue,
+.agent-composer-stop {
+  gap: 5px;
+  height: 29px;
+  padding: 0 10px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.agent-composer-queue {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.agent-composer-stop {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--foreground);
+}
+
+.agent-composer-stop:hover {
+  border-color: color-mix(in srgb, var(--destructive) 38%, var(--border));
+  background: color-mix(in srgb, var(--destructive) 8%, transparent);
+}
+
+.agent-composer-send:disabled,
+.agent-composer-queue:disabled {
+  opacity: 0.38;
+  cursor: default;
+  transform: none;
+}
+
+.agent-composer-attach:focus-visible,
+.agent-composer-send:focus-visible,
+.agent-composer-remove:focus-visible,
+.agent-composer-queue:focus-visible,
+.agent-composer-stop:focus-visible,
+.agent-composer-option:focus-visible,
+.agent-mode-picker:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.agent-composer-error {
+  padding: 7px 9px;
+  border-radius: calc(var(--radius) - 3px);
+  background: color-mix(in srgb, var(--destructive) 8%, transparent);
+  color: var(--destructive);
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.agent-composer-hint {
+  margin-top: -3px;
+  padding: 0 3px;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.agent-composer-hint::before {
+  content: "Argument: ";
+  opacity: 0.68;
+}
+
+.agent-composer-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.agent-composer-attachment {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(240px, 100%);
+  min-height: 34px;
+  padding: 3px 4px 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: color-mix(in srgb, var(--muted) 70%, transparent);
+  color: var(--muted-foreground);
+}
+
+.agent-composer-thumb-image {
+  width: 36px;
+  height: 30px;
+  margin-left: -3px;
+  border-radius: calc(var(--radius) - 5px);
+  object-fit: cover;
+}
+
+.agent-composer-attachment-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-composer-remove {
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-foreground);
+}
+
+.agent-composer-remove:hover {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+}
+
+.agent-composer-popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 7px);
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  max-height: min(310px, 44vh);
+  padding: 5px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--popover, var(--card));
+  box-shadow: 0 16px 48px rgb(0 0 0 / 18%), 0 2px 8px rgb(0 0 0 / 8%);
+}
+
+.agent-composer-option {
+  display: grid;
+  grid-template-columns: auto minmax(72px, max-content) minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: calc(var(--radius) - 3px);
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.agent-composer-option-selected {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.agent-composer-option-name {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-composer-option-description,
+.agent-composer-option-path {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .agent-composer {
+    gap: 6px;
+    padding: 8px;
+    border-radius: calc(var(--radius) + 2px);
+  }
+
+  .agent-composer-actions {
+    gap: 5px;
+  }
+
+  .agent-composer-popover {
+    max-height: 42vh;
+  }
+
+  .agent-composer-option {
+    min-height: 40px;
+  }
+
+  .agent-composer-queue,
+  .agent-composer-stop {
+    padding-inline: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-composer,
+  .agent-composer-send {
+    transition: none;
+  }
+}

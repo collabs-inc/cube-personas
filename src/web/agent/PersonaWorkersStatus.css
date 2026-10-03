@@ -1,0 +1,9 @@
+/* Adapted from cube-computer: src/windows/app/src/persona/PersonaWorkersStatus.css */
+.persona-workers-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
