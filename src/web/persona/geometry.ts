@@ -10,7 +10,7 @@
 export type ColumnWeights = readonly [number, number];
 export const DEFAULT_COLUMN_WEIGHTS: ColumnWeights = [2, 3];
 
-/** No column is dragged narrower than this; the CSS holds the same floor. */
+/** Drag floor; CSS shares the available space evenly below twice this width. */
 export const COLUMN_MIN_PX = 240;
 
 export const WEIGHTS_KEY = "personas:weights";

@@ -144,9 +144,9 @@ export function WorkspaceList({ workspace, pick, onPick, onOpenRepos, onOpenCont
     <div className="persona-list-heading">
       <span className="persona-list-title">Workspace</span>
       <div className="persona-list-tools">
-        <button type="button" className="persona-list-tool" onClick={onOpenRepos}><GitFork size={14} aria-hidden="true" />Repositories</button>
+        <button type="button" className="persona-list-tool" aria-label="Repositories" title="Repositories" onClick={onOpenRepos}><GitFork size={14} aria-hidden="true" /><span>Repositories</span></button>
         <button type="button" className="persona-list-tool" aria-pressed={pick?.kind === "context"} disabled={tree === null}
-          onClick={onOpenContext}><Folder size={14} aria-hidden="true" />Context folder</button>
+          aria-label="Context folder" title="Context folder" onClick={onOpenContext}><Folder size={14} aria-hidden="true" /><span>Context folder</span></button>
       </div>
     </div>
     {error !== null && <p className="persona-pick-error" role="alert">{error}</p>}

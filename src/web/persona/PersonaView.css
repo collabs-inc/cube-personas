@@ -65,9 +65,9 @@
 
 /* ── Conversation and workspace ── */
 .persona-columns { display: flex; flex: 1; min-width: 0; min-height: 0; overflow-x: auto; }
-.persona-column { position: relative; display: flex; flex-direction: column; min-width: 240px; min-height: 0; overflow: hidden; }
+.persona-column { position: relative; display: flex; flex-direction: column; min-width: min(240px, 50%); min-height: 0; overflow: hidden; }
 .persona-column-conversation > .agent-item { flex: 1; min-height: 0; }
-.persona-column-workspace { border-left: 1px solid color-mix(in srgb, var(--foreground) 9%, transparent); }
+.persona-column-workspace { border-left: 1px solid color-mix(in srgb, var(--foreground) 9%, transparent); container: persona-workspace / inline-size; }
 /* One seam, with a wider invisible hit target for resizing. */
 .persona-column-handle { position: relative; z-index: 2; flex: none; width: 0; cursor: col-resize; touch-action: none; }
 .persona-column-handle::before { content: ""; position: absolute; top: 0; bottom: 0; left: -6px; width: 12px; }
@@ -152,3 +152,19 @@
 .context-folder-caret-space { flex: none; width: 11px; }
 .context-folder-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .context-folder-empty { margin: 2px 0; color: var(--muted-foreground); font-size: 12px; }
+
+@container persona-workspace (max-width: 360px) {
+  .persona-list-tools .persona-list-tool > span { display: none; }
+}
+
+/* Keep the named list and both content columns visible inside a narrow Cube
+   viewport. Avatar/name stacks give the conversation and workspace room. */
+@media (max-width: 640px) {
+  .persona-switcher { flex-basis: 88px; }
+  .persona-switcher-heading { padding-inline: 10px; font-size: 13px; }
+  .persona-switch { flex-direction: column; gap: 6px; padding: 10px 4px 8px; font-size: 11px; text-align: center; }
+  .persona-switch-name { max-width: 100%; }
+  .persona-switch-menu { top: 2px; right: 0; width: 20px; height: 22px; }
+  .persona-new-button { padding-inline: 4px; gap: 3px; font-size: 12px; }
+  .persona-new-more { padding-inline: 4px; }
+}
