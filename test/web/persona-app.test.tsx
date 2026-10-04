@@ -482,14 +482,39 @@ test("the context folder lists files, expands directories, and opens a file read
   expect(container.textContent).not.toContain("Showing the first 1 MB.");
 
   await click(container.querySelector("button[aria-label='Back to the context folder']"));
-  // Returning to context keeps the expanded directory and its already-read files.
+  // Returning to context keeps expansion and refreshes the visible directories.
   expect(button("today.md")).toBeDefined();
-  expect(api.callsOf("files:list")).toHaveLength(2);
+  expect(api.callsOf("files:list")).toHaveLength(4);
   await click(button("today.md"));
   expect(container.textContent).toContain("Showing the first 1 MB.");
   await click(shown("button[aria-label='Back to the context folder']"));
   await click(shown("button[aria-label='Back to workspace list']"));
   expect(shown(".persona-tree")).toBeDefined();
+});
+
+test("retained files and expanded context directories refresh when shown again", async () => {
+  setUp([persona("p1", "Ada"), persona("p2", "Bea")]);
+  let revision = 1;
+  api.handle("files:list", ({ path }) => path === CONTEXT
+    ? { entries: [{ name: "notes", dir: true }] }
+    : { entries: [{ name: "today.md", dir: false }, ...(revision > 1 ? [{ name: "new.md", dir: false }] : [])] });
+  api.handle("files:read", () => ({ text: `revision ${revision}`, truncated: false }));
+  await mount();
+  await click(button("Context folder"));
+  await click(button("notes"));
+  const context = shown(".context-folder");
+  await click(button("today.md"));
+  expect(shown(".file-view-text")?.textContent).toBe("revision 1");
+  revision = 2;
+  await click(shown("button[aria-label='Back to the context folder']"));
+  expect(shown(".context-folder")).toBe(context);
+  expect(button("new.md")).toBeDefined();
+  await click(button("today.md"));
+  expect(shown(".file-view-text")?.textContent).toBe("revision 2");
+  await click(avatars()[1]);
+  revision = 3;
+  await click(avatars()[0]);
+  expect(shown(".file-view-text")?.textContent).toBe("revision 3");
 });
 
 test("Delete asks first, and calls persona:delete only on confirm", async () => {
@@ -704,6 +729,26 @@ test("pressing an open menu's trigger closes it rather than reopening it; a pres
   await press(trigger);
   await act(async () => { document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true })); });
   expect(container.querySelector("[role='menu']")).toBeNull();
+});
+
+test("a persona menu near the bottom of the list opens fully inside the viewport", async () => {
+  setUp([persona("p1", "Ada")]);
+  await mount();
+  const trigger = container.querySelector<HTMLElement>("button[aria-label='Actions for Ada']")!;
+  const rect = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+    if (this === trigger) return new DOMRect(window.innerWidth - 30, window.innerHeight - 30, 24, 26);
+    if (this.getAttribute("role") === "menu") return new DOMRect(0, 0, 188, 72);
+    return new DOMRect();
+  });
+  try {
+    await click(trigger);
+    const menu = container.querySelector<HTMLElement>("[role='menu']")!;
+    expect(parseFloat(menu.style.top)).toBeGreaterThanOrEqual(8);
+    expect(parseFloat(menu.style.top) + 72).toBeLessThanOrEqual(window.innerHeight - 8);
+    expect(parseFloat(menu.style.left) + 188).toBeLessThanOrEqual(window.innerWidth - 8);
+    await click(button("Rename"));
+    expect(shown("[role='dialog']")).toBeDefined();
+  } finally { rect.mockRestore(); }
 });
 
 test("a relative chat path waits for the workspace instead of opening a relative path", async () => {

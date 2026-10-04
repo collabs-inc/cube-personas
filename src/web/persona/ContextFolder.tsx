@@ -3,7 +3,7 @@
  * where a directory expands in place (read when first opened) and a file
  * opens read-only.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CaretRight, File as FileIcon, Folder } from "@phosphor-icons/react";
 import { getApi } from "../api";
 
@@ -43,22 +43,31 @@ function Directory({ personaId, path, depth, listings, expanded, onToggle, onOpe
   </ul>;
 }
 
-export function ContextFolder({ personaId, root, onOpenFile }: {
-  personaId: string; root: string; onOpenFile(path: string): void;
+export function ContextFolder({ personaId, root, active = true, onOpenFile }: {
+  personaId: string; root: string; active?: boolean; onOpenFile(path: string): void;
 }) {
   const api = getApi();
   const [listings, setListings] = useState<Record<string, Listing>>({});
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  const expandedRef = useRef(expanded);
+  expandedRef.current = expanded;
+  const requests = useRef(new Map<string, number>());
 
   const read = useCallback((path: string): void => {
-    setListings((held) => ({ ...held, [path]: { status: "loading" } }));
+    const version = (requests.current.get(path) ?? 0) + 1;
+    requests.current.set(path, version);
+    setListings((held) => held[path]?.status === "ok" ? held : { ...held, [path]: { status: "loading" } });
     api.request("files:list", { personaId, path }).then(
-      ({ entries }) => setListings((held) => ({ ...held, [path]: { status: "ok", entries } })),
-      (err: unknown) => setListings((held) => ({ ...held, [path]: { status: "error", message: err instanceof Error ? err.message : String(err) } })),
+      ({ entries }) => { if (requests.current.get(path) === version) setListings((held) => ({ ...held, [path]: { status: "ok", entries } })); },
+      (err: unknown) => { if (requests.current.get(path) === version) setListings((held) => ({ ...held, [path]: { status: "error", message: err instanceof Error ? err.message : String(err) } })); },
     );
   }, [api, personaId]);
 
-  useEffect(() => { read(root); }, [read, root]);
+  useEffect(() => {
+    if (!active) return;
+    read(root);
+    for (const path of expandedRef.current) read(path);
+  }, [read, root, active]);
 
   const toggle = (path: string): void => {
     const next = new Set(expanded);

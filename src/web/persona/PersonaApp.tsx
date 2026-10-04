@@ -5,7 +5,7 @@
  * and details stay mounted so navigation preserves drafts and live views.
  * All data and actions use this application's own server contract.
  */
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { ArrowLeft, Asterisk, CaretDown, DotsThree, OpenAiLogo, Plus, X } from "@phosphor-icons/react";
 import type { Harness, Persona } from "../../shared/types";
 import { getApi } from "../api";
@@ -69,6 +69,19 @@ interface OpenMenu { id: string; trigger: HTMLElement }
 function Menu({ trigger, onClose, children, label }: { trigger: HTMLElement; onClose(): void; children: ReactNode; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const rect = trigger.getBoundingClientRect();
+  const [position, setPosition] = useState({ top: rect.bottom + 4, left: rect.left });
+  useLayoutEffect(() => {
+    const menu = ref.current;
+    if (!menu) return;
+    const anchor = trigger.getBoundingClientRect();
+    const bounds = menu.getBoundingClientRect();
+    const below = anchor.bottom + 4;
+    const top = below + bounds.height <= window.innerHeight - 8 ? below : anchor.top - bounds.height - 4;
+    setPosition({
+      top: Math.max(8, Math.min(top, window.innerHeight - bounds.height - 8)),
+      left: Math.max(8, Math.min(anchor.left, window.innerWidth - bounds.width - 8)),
+    });
+  }, [trigger]);
   useEffect(() => {
     const dismiss = (event: PointerEvent) => {
       const target = event.target as Node;
@@ -82,7 +95,7 @@ function Menu({ trigger, onClose, children, label }: { trigger: HTMLElement; onC
     document.addEventListener("keydown", escape);
     document.addEventListener("scroll", scrolled, true);
     window.addEventListener("resize", onClose);
-    ref.current?.querySelector<HTMLElement>("[role='menuitem']")?.focus();
+    ref.current?.querySelector<HTMLElement>("[role='menuitem']")?.focus({ preventScroll: true });
     return () => {
       document.removeEventListener("pointerdown", dismiss, true);
       document.removeEventListener("keydown", escape);
@@ -91,7 +104,7 @@ function Menu({ trigger, onClose, children, label }: { trigger: HTMLElement; onC
     };
   }, [onClose, trigger]);
   return <div ref={ref} className="persona-menu" role="menu" aria-label={label}
-    style={{ position: "fixed", top: rect.bottom + 4, left: rect.left }}>{children}</div>;
+    style={{ position: "fixed", ...position, maxHeight: "calc(100dvh - 16px)", overflowY: "auto" }}>{children}</div>;
 }
 
 type Dialog =
@@ -262,8 +275,8 @@ function basename(path: string): string {
   return path.replace(/\/+$/, "").split("/").at(-1) || path;
 }
 
-function WorkspaceDetail({ personaId, pick, contextFolder, onPick, onBack }: {
-  personaId: string; pick: Pick; contextFolder: string | null; onPick(pick: Pick): void; onBack(): void;
+function WorkspaceDetail({ personaId, pick, active, contextFolder, onPick, onBack }: {
+  personaId: string; pick: Pick; active: boolean; contextFolder: string | null; onPick(pick: Pick): void; onBack(): void;
 }) {
   const workers = useWorkers(personaId);
   const worker = pick.kind === "worker" ? workers.find((candidate) => candidate.id === pick.id) : undefined;
@@ -282,9 +295,9 @@ function WorkspaceDetail({ personaId, pick, contextFolder, onPick, onBack }: {
     <div className="persona-pick-body">
       {pick.kind === "worker" && <WorkerTerminal key={pick.id} workerId={pick.id} worker={worker} />}
       {pick.kind === "artifact" && <ArtifactFrame key={pick.path} personaId={personaId} path={pick.path} name={pick.name} />}
-      {pick.kind === "file" && <FileView key={pick.path} personaId={personaId} path={pick.path} />}
+      {pick.kind === "file" && <FileView key={pick.path} personaId={personaId} path={pick.path} active={active} />}
       {pick.kind === "notice" && <p className="persona-pick-note" role="status">{pick.text}</p>}
-      {pick.kind === "context" && contextFolder !== null && <ContextFolder personaId={personaId} root={contextFolder}
+      {pick.kind === "context" && contextFolder !== null && <ContextFolder personaId={personaId} root={contextFolder} active={active}
         onOpenFile={(path) => onPick({ kind: "file", path, fromContext: true })} />}
     </div>
   </div>;
@@ -302,7 +315,7 @@ function pickKey(pick: Pick): string {
 }
 
 /** One persona's conversation and workspace; hidden personas stay mounted. */
-function PersonaView({ personaId, onDialog }: { personaId: string; onDialog(dialog: Dialog): void }) {
+function PersonaView({ personaId, visible, onDialog }: { personaId: string; visible: boolean; onDialog(dialog: Dialog): void }) {
   const workspace = useWorkspaceTree(personaId);
   const [pick, setPick] = useState<Pick | null>(null);
   const [visited, setVisited] = useState<Record<string, Pick>>({});
@@ -340,7 +353,7 @@ function PersonaView({ personaId, onDialog }: { personaId: string; onDialog(dial
       {Object.entries(visited).map(([key, detail]) => {
         const active = pick !== null && key === pickKey(pick);
         return <div key={key} className="persona-workspace-page" hidden={!active} inert={!active}>
-          <WorkspaceDetail personaId={personaId} pick={detail} contextFolder={contextFolder} onPick={openPick} onBack={back} />
+          <WorkspaceDetail personaId={personaId} pick={detail} active={active && visible} contextFolder={contextFolder} onPick={openPick} onBack={back} />
         </div>;
       })}
     </section>
@@ -410,7 +423,7 @@ export function PersonaApp() {
         <button type="button" className="persona-list-tool" aria-label="Dismiss error" onClick={() => setError(null)}><X size={13} /></button></div>}
       {ordered.filter((persona) => persona.id === shownId || visited.includes(persona.id)).map((persona) =>
         <div key={persona.id} className="persona-retained-view" hidden={persona.id !== shownId} inert={persona.id !== shownId}>
-          <PersonaView personaId={persona.id} onDialog={setDialog} />
+          <PersonaView personaId={persona.id} visible={persona.id === shownId && visible} onDialog={setDialog} />
         </div>)}
     </main>
     {dialogs}

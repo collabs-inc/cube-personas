@@ -4,19 +4,20 @@ import { getApi } from "../api";
 
 type Loaded = { status: "loading" } | { status: "ok"; text: string; truncated: boolean } | { status: "error"; message: string };
 
-export function FileView({ personaId, path }: { personaId: string; path: string }) {
+export function FileView({ personaId, path, active = true }: { personaId: string; path: string; active?: boolean }) {
   const api = getApi();
   const [file, setFile] = useState<Loaded>({ status: "loading" });
 
   useEffect(() => {
+    if (!active) return;
     let current = true;
-    setFile({ status: "loading" });
+    setFile((held) => held.status === "ok" ? held : { status: "loading" });
     api.request("files:read", { personaId, path }).then(
       ({ text, truncated }) => { if (current) setFile({ status: "ok", text, truncated }); },
       (err: unknown) => { if (current) setFile({ status: "error", message: err instanceof Error ? err.message : String(err) }); },
     );
     return () => { current = false; };
-  }, [api, personaId, path]);
+  }, [api, personaId, path, active]);
 
   if (file.status === "loading") return <div className="file-view file-view-loading" />;
   if (file.status === "error") return <div className="file-view"><p className="persona-pick-error" role="alert">{file.message}</p></div>;
