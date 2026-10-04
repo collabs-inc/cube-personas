@@ -7,7 +7,12 @@
    and the context folder list. */
 
 /* ── The page ── */
-.personas-app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; min-height: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); }
+.personas-app { display: flex; height: 100vh; height: 100dvh; min-height: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); }
+.persona-content { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+.persona-retained-view { display: flex; flex: 1; min-width: 0; min-height: 0; }
+.persona-workspace-page { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+/* Explicit because these flex rules override the browser's default hidden rule. */
+.persona-retained-view[hidden], .persona-workspace-page[hidden] { display: none; }
 .personas-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; }
 .persona-app-error { display: flex; align-items: center; gap: 8px; margin: 0 12px 6px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--destructive) 10%, transparent); color: var(--destructive); font-size: 12.5px; }
 .persona-app-error > span { flex: 1; }
@@ -15,22 +20,24 @@
 /* ── The switcher ── */
 /* Only the strip scrolls; the menus are the switcher's children, outside it,
    and fixed at their trigger, so the scroller can never clip them. */
-.persona-switcher { flex: none; min-width: 0; border-bottom: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent); }
-.persona-switch-strip { display: flex; align-items: center; gap: 6px; min-height: 52px; padding: 8px 12px; box-sizing: border-box; overflow-x: auto; }
-.persona-switch-group { position: relative; display: flex; align-items: center; flex: none; }
-.persona-switch { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
-.persona-switch .persona-avatar { font-size: 26px; }
-.persona-switch[aria-pressed="true"] { background: color-mix(in srgb, var(--foreground) 9%, transparent); }
-.persona-switch:hover { background: color-mix(in srgb, var(--foreground) 6%, transparent); }
+.persona-switcher { display: flex; flex-direction: column; flex: 0 0 clamp(160px, 18vw, 216px); min-width: 0; min-height: 0; border-right: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent); }
+.persona-switcher-heading { display: flex; align-items: center; flex: none; min-height: 46px; padding: 0 16px; font-size: 14px; font-weight: 600; }
+.persona-switch-strip { display: flex; flex-direction: column; gap: 4px; min-height: 0; padding: 0 8px 12px; box-sizing: border-box; overflow-y: auto; }
+.persona-switch-group { position: relative; display: flex; align-items: center; flex: none; min-width: 0; border-radius: 8px; }
+.persona-switch { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; min-height: 44px; padding: 6px 28px 6px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--foreground); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.persona-switch .persona-avatar { flex: none; font-size: 24px; }
+.persona-switch-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.persona-switch[aria-pressed="true"] { background: color-mix(in srgb, var(--foreground) 7%, transparent); }
+.persona-switch:hover { background: color-mix(in srgb, var(--foreground) 5%, transparent); }
 .persona-switch:focus-visible, .persona-switch-menu:focus-visible, .persona-new-button:focus-visible, .persona-new-more:focus-visible { outline: 2px solid var(--accent-selection, rgb(37, 99, 235)); outline-offset: 1px; }
 /* An avatar's menu trigger appears beside it on hover or focus. */
-.persona-switch-menu { display: grid; place-items: center; width: 16px; height: 24px; margin-left: -2px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: var(--muted-foreground); cursor: pointer; opacity: 0; transition: opacity 0.12s ease; }
+.persona-switch-menu { position: absolute; right: 4px; display: grid; place-items: center; width: 24px; height: 26px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: var(--muted-foreground); cursor: pointer; opacity: 0; transition: opacity 0.12s ease; }
 .persona-switch-group:hover .persona-switch-menu, .persona-switch-menu:focus-visible, .persona-switch-menu[aria-expanded="true"] { opacity: 1; }
 .persona-switch-menu:hover { color: var(--foreground); background: color-mix(in srgb, var(--foreground) 6%, transparent); }
 .persona-harness { display: grid; place-items: center; width: 100%; height: 100%; }
-.persona-new { margin-left: 4px; }
+.persona-new { order: -1; margin: 2px 0 6px; }
 .persona-new-button, .persona-new-more { display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent); background: transparent; color: var(--foreground); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
-.persona-new-button { border-radius: 8px 0 0 8px; }
+.persona-new-button { flex: 1; border-radius: 8px 0 0 8px; }
 .persona-new-more { padding: 0 7px; border-left: 0; border-radius: 0 8px 8px 0; color: var(--muted-foreground); }
 .persona-new-button:hover, .persona-new-more:hover { background: color-mix(in srgb, var(--foreground) 5%, transparent); color: var(--foreground); }
 
@@ -56,11 +63,11 @@
 .persona-dialog-danger { border-color: transparent; background: var(--destructive); color: #fff; }
 .persona-dialog-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--destructive) 88%, var(--background)); }
 
-/* ── The three columns ── */
-.persona-columns { display: flex; flex: 1; min-height: 0; overflow-x: auto; }
+/* ── Conversation and workspace ── */
+.persona-columns { display: flex; flex: 1; min-width: 0; min-height: 0; overflow-x: auto; }
 .persona-column { position: relative; display: flex; flex-direction: column; min-width: 240px; min-height: 0; overflow: hidden; }
 .persona-column-conversation > .agent-item { flex: 1; min-height: 0; }
-.persona-column-list, .persona-column-pick { border-left: 1px solid color-mix(in srgb, var(--foreground) 9%, transparent); }
+.persona-column-workspace { border-left: 1px solid color-mix(in srgb, var(--foreground) 9%, transparent); }
 /* One seam, with a wider invisible hit target for resizing. */
 .persona-column-handle { position: relative; z-index: 2; flex: none; width: 0; cursor: col-resize; touch-action: none; }
 .persona-column-handle::before { content: ""; position: absolute; top: 0; bottom: 0; left: -6px; width: 12px; }
@@ -71,7 +78,7 @@
 .persona-list-surface { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: auto; padding: 4px 12px 12px; }
 .persona-list-surface > .persona-list-heading,
 .persona-list-surface > .persona-tree { flex-shrink: 0; }
-.persona-list-heading { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 4px 0 6px; color: var(--foreground); font-size: 15px; font-weight: 600; }
+.persona-list-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 42px; padding: 0 4px 0 6px; color: var(--foreground); font-size: 15px; font-weight: 600; }
 .persona-list-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .persona-list-tools { display: flex; align-items: center; gap: 2px; flex: none; }
 .persona-list-tool { display: flex; align-items: center; gap: 5px; height: 26px; padding: 0 7px; border: 0; border-radius: 6px; background: transparent; color: var(--muted-foreground); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
@@ -114,12 +121,10 @@
 .persona-empty-title { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--foreground); text-wrap: balance; }
 .persona-empty-note { max-width: 280px; margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted-foreground); text-wrap: balance; }
 
-/* ── The pick column ── */
+/* ── Workspace detail ── */
 .persona-pick { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .persona-pick-heading { flex: none; padding: 0 8px 0 14px; }
 .persona-pick-body { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.persona-pick-empty { flex: 1; display: grid; place-items: center; padding: 24px; color: var(--muted-foreground); font-size: 13px; text-align: center; }
-.persona-pick-empty p { margin: 0; }
 .persona-pick-note { margin: 0; padding: 24px; color: var(--muted-foreground); font-size: 13px; text-align: center; }
 .persona-pick-error { margin: 8px; font-size: 12.5px; color: var(--destructive); }
 .artifact-frame { flex: 1; width: 100%; min-height: 0; border: 0; background: #fff; }

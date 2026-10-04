@@ -95,7 +95,7 @@ Parts of this code are adapted from Cube's own source (collabs-inc/cube-computer
 - src/windows/app/src/persona/PersonaTyping.tsx
 - src/windows/app/src/persona/PersonaView.css
 - src/windows/app/src/persona/PersonaView.css (the persona conversation's rules), with the tokens it reads from src/windows/app/src/App.css (--accent-selection) and src/windows/app/src/sidebar/ReposSidebar.css (--focus-bg, --agent-*)
-- src/windows/app/src/persona/PersonaView.tsx (the column handle and the workspace column's heading) and src/windows/app/src/items/Rail.tsx (the persona's three columns)
+- src/windows/app/src/persona/PersonaView.tsx (column handle and workspace navigation) and src/windows/app/src/desktop/system/PersonasSurface.tsx (vertical persona list)
 - src/windows/app/src/persona/PersonaWorkersStatus.css
 - src/windows/app/src/persona/PersonaWorkersStatus.test.tsx
 - src/windows/app/src/persona/PersonaWorkersStatus.tsx (with runningText from persona-workers.ts)

@@ -1,13 +1,9 @@
-// Adapted from cube-computer: src/windows/app/src/persona/PersonaView.tsx (the column handle and the workspace column's heading) and src/windows/app/src/items/Rail.tsx (the persona's three columns)
+// Adapted from cube-computer: src/windows/app/src/persona/PersonaView.tsx (column handle and workspace navigation) and src/windows/app/src/desktop/system/PersonasSurface.tsx (vertical persona list)
 /**
- * The whole page: the persona switcher across the top, then the shown
- * persona in three resizable columns — its conversation, its workspace list,
- * and whatever was picked from that list.
- *
- * In Cube the switcher is the navigator's Personas surface and the columns
- * are absolute rects on the rail; here the page is the app, so the switcher
- * is a strip of avatars and the columns are flex items with remembered
- * weights.
+ * A vertical persona list beside the selected conversation and workspace.
+ * The workspace shows its collection or one picked item. Visited personas
+ * and details stay mounted so navigation preserves drafts and live views.
+ * All data and actions use this application's own server contract.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { ArrowLeft, Asterisk, CaretDown, DotsThree, OpenAiLogo, Plus, X } from "@phosphor-icons/react";
@@ -66,7 +62,7 @@ interface OpenMenu { id: string; trigger: HTMLElement }
  * A small menu under its trigger; a press anywhere else or Escape closes it.
  *
  * It is `position: fixed` at the trigger's rect and rendered outside the
- * switcher's horizontal scroller, so no scrolling ancestor can clip it. A
+ * switcher's scroller, so no scrolling ancestor can clip it. A
  * press on the trigger itself is left to the trigger's own click, which
  * toggles the menu shut rather than closing and reopening it.
  */
@@ -80,7 +76,7 @@ function Menu({ trigger, onClose, children, label }: { trigger: HTMLElement; onC
       onClose();
     };
     const escape = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
-    // The strip scrolling would leave a fixed menu behind its trigger.
+    // Scrolling the list would leave a fixed menu behind its trigger.
     const scrolled = (event: Event) => { if (!ref.current?.contains(event.target as Node)) onClose(); };
     document.addEventListener("pointerdown", dismiss, true);
     document.addEventListener("keydown", escape);
@@ -162,8 +158,9 @@ function Switcher({ personas, status, shownId, visible, onSelect, onCreate, onDi
   const closeMenu = useCallback(() => setMenu(null), []);
   const toggle = (id: string, trigger: HTMLElement): void => setMenu(menu?.id === id ? null : { id, trigger });
   const menuPersona = menu && menu.id !== "new" ? personas.find((persona) => persona.id === menu.id) : undefined;
-  // The strip scrolls sideways; the menus are its siblings, never inside it.
+  // Only the list scrolls; menus are its siblings so they remain unclipped.
   return <nav className="persona-switcher" aria-label="Personas">
+    <div className="persona-switcher-heading">Personas</div>
     <div className="persona-switch-strip">
       {personas.map((persona) => {
         const name = personaName(persona);
@@ -179,6 +176,7 @@ function Switcher({ personas, status, shownId, visible, onSelect, onCreate, onDi
               if (trigger) setMenu({ id: persona.id, trigger });
             }}>
             <PersonaAvatar seed={persona.id} working={working} unread={unread} badge={<HarnessBadge harness={persona.harness} />} />
+            <span className="persona-switch-name">{name}</span>
           </button>
           <button type="button" className="persona-switch-menu" aria-label={`Actions for ${name}`} aria-haspopup="menu"
             aria-expanded={menu?.id === persona.id} onClick={(event) => toggle(persona.id, event.currentTarget)}>
@@ -210,8 +208,8 @@ function Switcher({ personas, status, shownId, visible, onSelect, onCreate, onDi
  * keys. Sized wider than the seam it sits on so grabbing it never means
  * aiming at a hairline.
  */
-function ColumnHandle({ boundary, weights, measure, onChange, label }: {
-  boundary: 0 | 1; weights: ColumnWeights; measure(): number; onChange(weights: ColumnWeights): void; label: string;
+function ColumnHandle({ weights, measure, onChange, label }: {
+  weights: ColumnWeights; measure(): number; onChange(weights: ColumnWeights): void; label: string;
 }) {
   const drag = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
@@ -221,7 +219,7 @@ function ColumnHandle({ boundary, weights, measure, onChange, label }: {
     const start = weights;
     const width = measure();
     handle.setPointerCapture?.(event.pointerId);
-    const move = (moved: PointerEvent) => onChange(resizeColumns(start, boundary, moved.clientX - startX, width));
+    const move = (moved: PointerEvent) => onChange(resizeColumns(start, moved.clientX - startX, width));
     const end = () => {
       handle.removeEventListener("pointermove", move);
       handle.removeEventListener("pointerup", end);
@@ -237,7 +235,7 @@ function ColumnHandle({ boundary, weights, measure, onChange, label }: {
     const step = event.key === "ArrowLeft" ? -24 : event.key === "ArrowRight" ? 24 : 0;
     if (step === 0) return;
     event.preventDefault();
-    onChange(resizeColumns(weights, boundary, step, measure()));
+    onChange(resizeColumns(weights, step, measure()));
   };
   return <div className="persona-column-handle" role="separator" aria-orientation="vertical" aria-label={label} tabIndex={0}
     onPointerDown={drag} onKeyDown={key} />;
@@ -264,11 +262,10 @@ function basename(path: string): string {
   return path.replace(/\/+$/, "").split("/").at(-1) || path;
 }
 
-function PickColumn({ personaId, pick, contextFolder, onPick, onClose }: {
-  personaId: string; pick: Pick | null; contextFolder: string | null; onPick(pick: Pick): void; onClose(): void;
+function WorkspaceDetail({ personaId, pick, contextFolder, onPick, onBack }: {
+  personaId: string; pick: Pick; contextFolder: string | null; onPick(pick: Pick): void; onBack(): void;
 }) {
   const workers = useWorkers(personaId);
-  if (pick === null) return <div className="persona-pick-empty"><p>Pick a worker or an artifact.</p></div>;
   const worker = pick.kind === "worker" ? workers.find((candidate) => candidate.id === pick.id) : undefined;
   const title = pick.kind === "worker" ? worker?.title || "Worker"
     : pick.kind === "artifact" ? pick.name
@@ -277,10 +274,10 @@ function PickColumn({ personaId, pick, contextFolder, onPick, onClose }: {
           : "Context folder";
   return <div className="persona-pick">
     <div className="persona-list-heading persona-pick-heading">
-      {pick.kind === "file" && pick.fromContext && <button type="button" className="persona-workspace-back" aria-label="Back to the context folder"
-        onClick={() => onPick({ kind: "context" })}><ArrowLeft size={14} /></button>}
+      <button type="button" className="persona-workspace-back"
+        aria-label={pick.kind === "file" && pick.fromContext ? "Back to the context folder" : "Back to workspace list"}
+        onClick={onBack}><ArrowLeft size={14} /></button>
       <span className="persona-list-title" title={pick.kind === "file" ? pick.path : title}>{title}</span>
-      <button type="button" className="persona-list-tool" aria-label="Close" onClick={onClose}><X size={14} /></button>
     </div>
     <div className="persona-pick-body">
       {pick.kind === "worker" && <WorkerTerminal key={pick.id} workerId={pick.id} worker={worker} />}
@@ -293,10 +290,22 @@ function PickColumn({ personaId, pick, contextFolder, onPick, onClose }: {
   </div>;
 }
 
-/** One persona's three columns. Keyed by the persona, so a switch starts it fresh. */
+/** Stable keys keep each visited terminal, frame and context tree alive. */
+function pickKey(pick: Pick): string {
+  switch (pick.kind) {
+    case "worker": return `worker:${pick.id}`;
+    case "artifact": return `artifact:${pick.path}`;
+    case "file": return `file:${pick.path}`;
+    case "context": return "context";
+    case "notice": return "notice";
+  }
+}
+
+/** One persona's conversation and workspace; hidden personas stay mounted. */
 function PersonaView({ personaId, onDialog }: { personaId: string; onDialog(dialog: Dialog): void }) {
   const workspace = useWorkspaceTree(personaId);
   const [pick, setPick] = useState<Pick | null>(null);
+  const [visited, setVisited] = useState<Record<string, Pick>>({});
   const [weights, setWeights] = useState<ColumnWeights>(readWeights);
   const columnsRef = useRef<HTMLDivElement>(null);
   const contextFolder = workspace.tree?.contextFolder.path ?? null;
@@ -304,24 +313,36 @@ function PersonaView({ personaId, onDialog }: { personaId: string; onDialog(dial
   const changeWeights = useCallback((next: ColumnWeights) => { setWeights(next); saveWeights(next); }, []);
   // The page's width when nothing has been laid out (a hidden tab) is the window's.
   const measure = useCallback(() => columnsRef.current?.getBoundingClientRect().width || window.innerWidth, []);
+  const openPick = useCallback((next: Pick) => {
+    setVisited((held) => ({ ...held, [pickKey(next)]: next }));
+    setPick(next);
+  }, []);
   const openPath = useCallback((path: string) => {
     const resolved = resolveChatPath(path, contextFolder);
-    setPick(resolved === null ? { kind: "notice", text: "Still loading this persona's files." } : { kind: "file", path: resolved, fromContext: false });
-  }, [contextFolder]);
+    openPick(resolved === null ? { kind: "notice", text: "Still loading this persona's files." } : { kind: "file", path: resolved, fromContext: false });
+  }, [contextFolder, openPick]);
+  const back = () => {
+    if (pick?.kind === "file" && pick.fromContext) openPick({ kind: "context" });
+    else setPick(null);
+  };
 
-  const column = (index: 0 | 1 | 2) => ({ flexGrow: weights[index], flexShrink: 1, flexBasis: 0 });
+  const column = (index: 0 | 1) => ({ flexGrow: weights[index], flexShrink: 1, flexBasis: 0 });
   return <div className="persona-columns" ref={columnsRef}>
     <section className="persona-column persona-column-conversation" style={column(0)} aria-label="Conversation">
       <Conversation personaId={personaId} onOpenPath={openPath} />
     </section>
-    <ColumnHandle boundary={0} weights={weights} measure={measure} onChange={changeWeights} label="Resize the conversation column" />
-    <section className="persona-column persona-column-list" style={column(1)} aria-label="Workspace">
-      <WorkspaceList workspace={workspace} pick={pick} onPick={setPick}
-        onOpenRepos={() => onDialog({ kind: "repos" })} onOpenContext={() => setPick({ kind: "context" })} />
-    </section>
-    <ColumnHandle boundary={1} weights={weights} measure={measure} onChange={changeWeights} label="Resize the workspace column" />
-    <section className="persona-column persona-column-pick" style={column(2)} aria-label="Picked">
-      <PickColumn personaId={personaId} pick={pick} contextFolder={contextFolder} onPick={setPick} onClose={() => setPick(null)} />
+    <ColumnHandle weights={weights} measure={measure} onChange={changeWeights} label="Resize the conversation column" />
+    <section className="persona-column persona-column-workspace" style={column(1)} aria-label="Workspace">
+      <div className="persona-workspace-page" hidden={pick !== null} inert={pick !== null}>
+        <WorkspaceList workspace={workspace} pick={pick} onPick={openPick}
+          onOpenRepos={() => onDialog({ kind: "repos" })} onOpenContext={() => openPick({ kind: "context" })} />
+      </div>
+      {Object.entries(visited).map(([key, detail]) => {
+        const active = pick !== null && key === pickKey(pick);
+        return <div key={key} className="persona-workspace-page" hidden={!active} inert={!active}>
+          <WorkspaceDetail personaId={personaId} pick={detail} contextFolder={contextFolder} onPick={openPick} onBack={back} />
+        </div>;
+      })}
     </section>
   </div>;
 }
@@ -336,6 +357,7 @@ export function PersonaApp() {
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [visited, setVisited] = useState<string[]>([]);
   const shown = ordered.find((persona) => persona.id === selectedId) ?? ordered[0] ?? null;
 
   const select = useCallback((id: string) => { setSelectedId(id); saveSelected(id); }, []);
@@ -351,6 +373,9 @@ export function PersonaApp() {
 
   // The shown persona's replies are read as they arrive.
   const shownId = shown?.id ?? null;
+  useEffect(() => {
+    if (shownId !== null) setVisited((held) => held.includes(shownId) ? held : [...held, shownId]);
+  }, [shownId]);
   const shownUnread = shown?.unread ?? false;
   useEffect(() => {
     if (shownId === null || !shownUnread || !visible) return;
@@ -380,9 +405,14 @@ export function PersonaApp() {
 
   return <div className="personas-app">
     <Switcher personas={ordered} status={status} shownId={shownId} visible={visible} onSelect={select} onCreate={create} onDialog={setDialog} />
-    {error !== null && <div className="persona-app-error" role="alert"><span>{error}</span>
-      <button type="button" className="persona-list-tool" aria-label="Dismiss error" onClick={() => setError(null)}><X size={13} /></button></div>}
-    {shown !== null && <PersonaView key={shown.id} personaId={shown.id} onDialog={setDialog} />}
+    <main className="persona-content">
+      {error !== null && <div className="persona-app-error" role="alert"><span>{error}</span>
+        <button type="button" className="persona-list-tool" aria-label="Dismiss error" onClick={() => setError(null)}><X size={13} /></button></div>}
+      {ordered.filter((persona) => persona.id === shownId || visited.includes(persona.id)).map((persona) =>
+        <div key={persona.id} className="persona-retained-view" hidden={persona.id !== shownId} inert={persona.id !== shownId}>
+          <PersonaView personaId={persona.id} onDialog={setDialog} />
+        </div>)}
+    </main>
     {dialogs}
   </div>;
 }

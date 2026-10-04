@@ -12,7 +12,7 @@ import type { WorkspaceTree, WorkspaceWorker } from "../../shared/types";
 import { getApi } from "../api";
 import { usePersonaStatus } from "../stores/personas";
 
-/** What the pick column shows; the list marks the matching row. */
+/** What replaces the collection in the workspace. */
 export type Pick =
   | { kind: "worker"; id: string }
   | { kind: "artifact"; path: string; name: string }

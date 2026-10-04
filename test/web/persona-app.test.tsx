@@ -17,7 +17,7 @@ import { resetPromptQueueStore } from "../../src/web/agent/prompt-queue";
 import { resetComposerDraftStore } from "../../src/web/agent/composer-state";
 import { resetPersonasStore } from "../../src/web/stores/personas";
 import { resetWorkersStore } from "../../src/web/stores/workers";
-import { COLUMN_MIN_PX, DEFAULT_COLUMN_WEIGHTS, resizeColumns } from "../../src/web/persona/geometry";
+import { COLUMN_MIN_PX, DEFAULT_COLUMN_WEIGHTS, readWeights, resizeColumns } from "../../src/web/persona/geometry";
 import { RELOAD_DEBOUNCE_MS } from "../../src/web/persona/WorkspaceList";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -200,7 +200,11 @@ async function click(element: Element | null | undefined): Promise<void> {
 }
 
 function button(text: string): HTMLButtonElement | undefined {
-  return [...container.querySelectorAll<HTMLButtonElement>("button")].find((b) => b.textContent?.trim() === text);
+  return [...container.querySelectorAll<HTMLButtonElement>("button")].find((b) => !b.closest("[hidden], [inert]") && b.textContent?.trim() === text);
+}
+
+function shown<T extends HTMLElement = HTMLElement>(selector: string): T | undefined {
+  return [...container.querySelectorAll<T>(selector)].find((element) => !element.closest("[hidden], [inert]"));
 }
 
 function avatars(): HTMLButtonElement[] {
@@ -273,18 +277,19 @@ test("New's menu creates a codex persona", async () => {
   expect(api.callsOf("persona:create")).toEqual([{ harness: "codex" }]);
 });
 
-test("two personas render two avatars in creation order, and selecting one shows its conversation", async () => {
+test("the persona list names each persona in creation order, and selecting one shows its conversation", async () => {
   setUp([persona("p2", "Bea", { createdAt: "2026-10-03T00:00:09Z" }), persona("p1", "Ada", { createdAt: "2026-10-03T00:00:01Z" })]);
   await mount();
 
   expect(avatars().map((a) => a.getAttribute("aria-label"))).toEqual(["Ada", "Bea"]);
+  expect(avatars().map((a) => a.textContent?.trim())).toEqual(["Ada", "Bea"]);
   // The first persona shows until another is picked.
   expect(api.callsOf("persona:open").at(-1)).toEqual({ id: "p1" });
   expect(container.querySelector(".persona-welcome-name")?.textContent).toBe("Ada");
 
   await click(avatars()[1]);
   expect(api.callsOf("persona:open").at(-1)).toEqual({ id: "p2" });
-  expect(container.querySelector(".persona-welcome-name")?.textContent).toBe("Bea");
+  expect(shown(".persona-welcome-name")?.textContent).toBe("Bea");
   expect(localStorage.getItem("personas:selected")).toBe("p2");
 });
 
@@ -332,8 +337,13 @@ test("picking a worker mounts a terminal that receives worker:attach data, then 
 
   const row = container.querySelector<HTMLButtonElement>("button[data-worker-id='w1']");
   expect(row?.textContent).toContain("Fix the login form");
-  expect(container.textContent).toContain("Pick a worker or an artifact.");
+  expect(container.querySelectorAll(".persona-column")).toHaveLength(2);
+  const collection = container.querySelector(".persona-list-surface")!;
+  expect(collection.closest("[hidden]")).toBeNull();
   await click(row);
+
+  expect(collection.closest("[hidden]")).not.toBeNull();
+  expect(shown("[aria-label='Workspace'] .worker-terminal")).toBeDefined();
 
   expect(api.callsOf("worker:attach")).toEqual([{ id: "w1" }]);
   const term = xterm.FakeTerminal.instances.at(-1)!;
@@ -350,6 +360,10 @@ test("picking a worker mounts a terminal that receives worker:attach data, then 
 
   await emit("worker:exit", { id: "w1", exitCode: 3 });
   expect(container.querySelector(".worker-terminal-exit")?.textContent).toBe("Exited with code 3.");
+
+  await click(shown("button[aria-label='Back to workspace list']"));
+  expect(collection.closest("[hidden]")).toBeNull();
+  expect(shown(".worker-terminal")).toBeUndefined();
 });
 
 test("a worker row shows its state and the first line of its latest report", async () => {
@@ -468,9 +482,14 @@ test("the context folder lists files, expands directories, and opens a file read
   expect(container.textContent).not.toContain("Showing the first 1 MB.");
 
   await click(container.querySelector("button[aria-label='Back to the context folder']"));
-  await click(button("notes"));
+  // Returning to context keeps the expanded directory and its already-read files.
+  expect(button("today.md")).toBeDefined();
+  expect(api.callsOf("files:list")).toHaveLength(2);
   await click(button("today.md"));
   expect(container.textContent).toContain("Showing the first 1 MB.");
+  await click(shown("button[aria-label='Back to the context folder']"));
+  await click(shown("button[aria-label='Back to workspace list']"));
+  expect(shown(".persona-tree")).toBeDefined();
 });
 
 test("Delete asks first, and calls persona:delete only on confirm", async () => {
@@ -520,6 +539,9 @@ test("a file path in the chat opens in the file view", async () => {
   await click(link);
   expect(api.callsOf("files:read")).toEqual([{ personaId: "p1", path: `${CONTEXT}/notes/plan.md` }]);
   expect(container.querySelector(".file-view-text")?.textContent).toBe(`read ${CONTEXT}/notes/plan.md`);
+  expect(shown(".persona-tree")).toBeUndefined();
+  await click(shown("button[aria-label='Back to workspace list']"));
+  expect(shown(".persona-tree")).toBeDefined();
 });
 
 test("Conversation calls onOpenPath with a path link's target", async () => {
@@ -531,21 +553,28 @@ test("Conversation calls onOpenPath with a path link's target", async () => {
   expect(opened).toEqual(["src/app.ts"]);
 });
 
-test("column weights default to 2:1:2, keep every column at 240 px, and are remembered", async () => {
-  expect(DEFAULT_COLUMN_WEIGHTS).toEqual([2, 1, 2]);
-  const next = resizeColumns(DEFAULT_COLUMN_WEIGHTS, 0, -10_000, 1500);
+test("resizing the conversation leaves one usable workspace and remembers their proportions", async () => {
+  const next = resizeColumns(DEFAULT_COLUMN_WEIGHTS, -10_000, 1500);
   expect(next[0] / 5 * 1500).toBeCloseTo(COLUMN_MIN_PX);
-  expect(next[2]).toBe(2);
+  expect(next[1] / 5 * 1500).toBeCloseTo(1500 - COLUMN_MIN_PX);
 
   setUp([persona("p1", "Ada")]);
   await mount();
   const columns = [...container.querySelectorAll<HTMLElement>(".persona-column")];
-  expect(columns.map((c) => c.style.flexGrow)).toEqual(["2", "1", "2"]);
+  expect(columns.map((c) => c.style.flexGrow)).toEqual(["2", "3"]);
+  expect(container.querySelectorAll("[role='separator']")).toHaveLength(1);
   const handle = container.querySelector<HTMLElement>("[role='separator']")!;
   await act(async () => { handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); });
   const stored = JSON.parse(localStorage.getItem("personas:weights")!) as number[];
-  expect(stored).toHaveLength(3);
+  expect(stored).toHaveLength(2);
   expect(stored[0]).toBeGreaterThan(2);
+});
+
+test("old three-column preferences fold the list and picked widths into the workspace", () => {
+  localStorage.setItem("personas:weights", "[3,2,4]");
+  expect(readWeights()).toEqual([3, 6]);
+  localStorage.setItem("personas:weights", "[0,2]");
+  expect(readWeights()).toEqual([2, 3]);
 });
 
 test("an artifact path with spaces, & and # survives the iframe's src", async () => {
@@ -561,7 +590,7 @@ test("an artifact path with spaces, & and # survives the iframe's src", async ()
   expect(src.hash).toBe("");
 });
 
-test("switching worker or persona disposes the terminal and leaves no worker:output listener", async () => {
+test("visited workers stay live across workspace and persona navigation, then detach on deletion", async () => {
   setUp([persona("p1", "Ada"), persona("p2", "Bea")], [worker("w1", "p1"), worker("w2", "p1", { title: "Second" })]);
   api.handle("worker:attach", ({ id }) => ({ data: `${id} output`, exited: false }));
   api.handle("worker:resize", () => null);
@@ -573,18 +602,60 @@ test("switching worker or persona disposes the terminal and leaves no worker:out
   const first = xterm.FakeTerminal.instances.at(-1)!;
   expect(api.listenerCount("worker:output")).toBe(before + 1);
 
+  await click(shown("button[aria-label='Back to workspace list']"));
   await click(container.querySelector("button[data-worker-id='w2']"));
   const second = xterm.FakeTerminal.instances.at(-1)!;
-  expect(first.disposed).toBe(true);
+  expect(first.disposed).toBe(false);
   expect(second).not.toBe(first);
   expect(second.written).toContain("w2 output");
-  expect(api.listenerCount("worker:output")).toBe(before + 1);
+  expect(api.listenerCount("worker:output")).toBe(before + 2);
 
   await click(avatars()[1]);
+  expect(second.disposed).toBe(false);
+  expect(shown(".worker-terminal")).toBeUndefined();
+  await emit("worker:output", { id: "w1", data: "while away" });
+  expect(first.written.at(-1)).toBe("while away");
+  await click(avatars()[0]);
+  await click(shown("button[aria-label='Back to workspace list']"));
+  await click(container.querySelector("button[data-worker-id='w1']"));
+  expect(xterm.FakeTerminal.instances).toHaveLength(2);
+  expect(api.callsOf("worker:attach")).toEqual([{ id: "w1" }, { id: "w2" }]);
+
+  personas = [personas[1]!];
+  await emit("personas:changed", { personas });
+  expect(first.disposed).toBe(true);
   expect(second.disposed).toBe(true);
   expect(api.listenerCount("worker:output")).toBe(0);
-  // The server stops sending each worker's output once its terminal goes.
   expect(api.callsOf("worker:detach")).toEqual([{ id: "w1" }, { id: "w2" }]);
+});
+
+test("switching personas preserves the conversation draft and the artifact iframe DOM", async () => {
+  setUp([persona("p1", "Ada"), persona("p2", "Bea")]);
+  await mount();
+  const draft = shown<HTMLTextAreaElement>(".agent-composer-input")!;
+  const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!;
+  await act(async () => {
+    setter.call(draft, "Keep this draft");
+    draft.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  const quiet = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+  await click(container.querySelector("button[data-artifact-path='/repos/app/report.html']"));
+  quiet.mockRestore();
+  const frame = shown("iframe")!;
+  await click(shown("button[aria-label='Back to workspace list']"));
+  expect(frame.isConnected).toBe(true);
+  expect(frame.closest("[hidden][inert]")).not.toBeNull();
+  await click(container.querySelector("button[data-artifact-path='/repos/app/report.html']"));
+  expect(shown("iframe")).toBe(frame);
+
+  await click(avatars()[1]);
+  expect(shown("iframe")).toBeUndefined();
+  expect(draft.closest("[hidden][inert]")).not.toBeNull();
+  await click(avatars()[0]);
+  expect(shown("iframe")).toBe(frame);
+  expect(shown(".agent-composer-input")).toBe(draft);
+  expect(draft.value).toBe("Keep this draft");
+  expect(api.callsOf("persona:open")).toEqual([{ id: "p1" }, { id: "p2" }]);
 });
 
 /** The selectors in PersonaView.css whose rule sets an overflow (happy-dom loads no stylesheet). */
@@ -643,5 +714,5 @@ test("a relative chat path waits for the workspace instead of opening a relative
 
   await click(container.querySelector(".agent-markdown-path-link"));
   expect(api.callsOf("files:read")).toEqual([]);
-  expect(container.querySelector(".persona-column-pick")?.textContent).toContain("Still loading this persona's files.");
+  expect(shown("[aria-label='Workspace']")?.textContent).toContain("Still loading this persona's files.");
 });
